@@ -1,0 +1,13 @@
+app = "guardcore-api"
+primary_region = "iad"
+
+[build]
+  builder = "heroku/buildpacks:20"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+
+[[env]]
+  from = "file"
+  file = ".env"

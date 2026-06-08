@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GuardCore – Admin Dashboard</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">GuardCore</div>
+    <div class="login-sub">Admin Dashboard</div>
+    <input class="login-input" id="loginInput" type="password" placeholder="Enter admin password" autocomplete="current-password" />
+    <button class="login-btn" id="loginBtn">Sign In</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<div class="app" id="app" hidden>
+
+  <nav class="navbar">
+    <span class="nav-logo">GuardCore</span>
+    <span class="nav-status" id="navStatus">connecting…</span>
+    <span class="nav-spacer"></span>
+    <button class="nav-btn" id="themeBtn" title="Toggle theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+    <button class="nav-btn" id="settingsBtn" title="Chat settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+    <button class="nav-btn" id="clearBtn" title="Clear chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>
+      </svg>
+    </button>
+    <button class="nav-btn" id="logoutBtn" title="Logout">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+    </button>
+  </nav>
+
+  <div class="tabs">
+    <button class="tab active" id="tabChat">Chat</button>
+    <button class="tab" id="tabApi">API Settings</button>
+  </div>
+
+  <div class="error-bar" id="errorBar"></div>
+
+  <div class="chat-section" id="chatSection">
+    <main class="main" id="messages"></main>
+    <footer class="footer">
+      <form class="input-row" id="form">
+        <textarea class="input-area" id="input" rows="1" placeholder="Send a message… (Enter to send, Shift+Enter for newline)"></textarea>
+        <button type="submit" class="send-btn" id="sendBtn" title="Send">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </form>
+    </footer>
+  </div>
+
+  <div class="api-section hidden" id="apiSection">
+    <div class="api-inner">
+      <h2 class="api-heading">API Configuration</h2>
+
+      <div class="api-card">
+        <div class="api-card-label">Base URL</div>
+        <div class="api-url-row">
+          <code class="api-url" id="apiBaseUrl">loading…</code>
+          <button class="btn btn-sm" id="apiCopyUrl">Copy</button>
+        </div>
+        <div class="api-hint">Give this URL to users so they can use the API with any OpenAI-compatible client (Roo Code, OpenCode, etc.)</div>
+      </div>
+
+      <div class="api-card">
+        <div class="api-card-label">API Keys</div>
+        <div id="apiKeysList"></div>
+        <button class="btn btn-primary api-gen-btn" id="apiGenerateBtn">Generate New Key</button>
+      </div>
+
+      <div class="api-card api-gen-result hidden" id="apiGenerateResult">
+        <div class="api-card-label new-key-label">New Key Generated</div>
+        <div class="api-new-key" id="apiNewKeyValue"></div>
+        <div class="api-key-actions">
+          <button class="btn btn-sm" id="apiCopyKey">Copy Key</button>
+        </div>
+        <div class="api-hint" id="apiNewKeyNote"></div>
+        <div class="api-command-box">
+          <code id="apiNewCommand"></code>
+          <button class="btn btn-sm" id="apiCopyCommand">Copy Command</button>
+        </div>
+        <div class="api-hint">Run the command in your terminal, then redeploy with <code>vercel --prod</code></div>
+      </div>
+
+      <div class="api-card">
+        <div class="api-card-label">Usage Examples</div>
+        <div class="api-hint" style="margin-bottom: 10px">Users can use the standard OpenAI SDK:</div>
+        <div class="api-code-block">
+          <code>from openai import OpenAI<br/><br/>client = OpenAI(<br/>&nbsp;&nbsp;api_key="sk-xxx...",<br/>&nbsp;&nbsp;base_url="<span id="apiExampleUrl">https://guardcoreapi.qzz.io/v1</span>"<br/>)<br/><br/>stream = client.chat.completions.create(<br/>&nbsp;&nbsp;model="minimaxai/minimax-m2.7",<br/>&nbsp;&nbsp;messages=[{"role": "user", "content": "Hello"}],<br/>&nbsp;&nbsp;stream=True<br/>)<br/>for chunk in stream:<br/>&nbsp;&nbsp;print(chunk.choices[0].delta.content or "", end="")</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2>Chat Settings</h2>
+    <div class="field">
+      <label>Model (server-forced, read-only)</label>
+      <input type="text" id="setModel" disabled />
+    </div>
+    <div class="field">
+      <label>System prompt</label>
+      <textarea id="setSystem" placeholder="You are a helpful assistant…"></textarea>
+    </div>
+    <div class="field">
+      <label>Temperature (0 – 2)</label>
+      <input type="number" id="setTemp" min="0" max="2" step="0.1" />
+    </div>
+    <div class="field">
+      <label>Max tokens</label>
+      <input type="number" id="setMax" min="1" max="16384" step="64" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="cancelBtn">Cancel</button>
+      <button class="btn btn-primary" id="saveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/dashboard.js"></script>
+</body>
+</html>
