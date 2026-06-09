@@ -36,7 +36,7 @@ export default async function handler(req, res) {
       .json({ error: { message: "Server misconfigured", type: "server_error" } });
   }
 
-  const { messages, temperature, max_tokens, stream: requestedStream } = req.body || {};
+  const { messages, model, temperature, max_tokens, stream: requestedStream } = req.body || {};
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res
       .status(400)
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
 
   const nvidiaBody = {
     messages,
-    model: "minimaxai/minimax-m2.7",
+    model: model || "minimaxai/minimax-m2.7",
     stream: true,
     temperature: temperature ?? 0.7,
     max_tokens: max_tokens ?? 2048,
@@ -77,7 +77,7 @@ export default async function handler(req, res) {
       .json({ error: { message: text || "Upstream error", type: "upstream_error" } });
   }
 
-  const MODEL = "minimaxai/minimax-m2.7";
+  const usedModel = model || "minimaxai/minimax-m2.7";
 
   if (!stream) {
     let content = "";
@@ -117,7 +117,7 @@ export default async function handler(req, res) {
       id,
       object: "chat.completion",
       created,
-      model: MODEL,
+      model: model || "minimaxai/minimax-m2.7",
       choices: [
         {
           index: 0,
@@ -170,7 +170,7 @@ export default async function handler(req, res) {
           const raw = JSON.parse(p);
           const { nvext, ...clean } = raw;
           clean.object = "chat.completion.chunk";
-          clean.model = MODEL;
+          clean.model = usedModel;
           if (clean.choices?.[0]?.delta && !clean.choices[0].delta.role) {
             clean.choices[0].delta.role = "assistant";
           }
