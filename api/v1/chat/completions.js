@@ -36,7 +36,7 @@ export default async function handler(req, res) {
       .json({ error: { message: "Server misconfigured", type: "server_error" } });
   }
 
-  const { messages, model, temperature, max_tokens, stream: requestedStream } = req.body || {};
+  const { messages, stream: requestedStream, ...rest } = req.body || {};
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res
       .status(400)
@@ -45,13 +45,36 @@ export default async function handler(req, res) {
 
   const stream = requestedStream !== false;
 
+  const MODEL_ALIASES = {
+    "minimax-m2.7": "minimaxai/minimax-m2.7",
+    "minimax": "minimaxai/minimax-m2.7",
+    "llama-3.1-70b": "meta/llama-3.1-70b-instruct",
+    "llama-3.1-8b": "meta/llama-3.1-8b-instruct",
+    "llama-3.3-70b": "meta/llama-3.3-70b-instruct",
+    "deepseek-v4-flash": "deepseek-ai/deepseek-v4-flash",
+    "deepseek-v4": "deepseek-ai/deepseek-v4-flash",
+    "qwen3-235b": "qwen/qwen3-235b-a20b-instruct",
+    "mistral-large": "mistralai/mistral-large",
+  };
+
+  let model = rest.model || "minimaxai/minimax-m2.7";
+  if (MODEL_ALIASES[model]) model = MODEL_ALIASES[model];
+
   const nvidiaBody = {
     messages,
-    model: model || "minimaxai/minimax-m2.7",
+    model,
     stream: true,
-    temperature: temperature ?? 0.7,
-    max_tokens: max_tokens ?? 2048,
+    temperature: rest.temperature ?? 0.7,
+    max_tokens: rest.max_tokens ?? 2048,
   };
+
+  if (rest.tools) nvidiaBody.tools = rest.tools;
+  if (rest.tool_choice) nvidiaBody.tool_choice = rest.tool_choice;
+  if (rest.stop) nvidiaBody.stop = rest.stop;
+  if (rest.frequency_penalty) nvidiaBody.frequency_penalty = rest.frequency_penalty;
+  if (rest.presence_penalty) nvidiaBody.presence_penalty = rest.presence_penalty;
+  if (rest.top_p) nvidiaBody.top_p = rest.top_p;
+  if (rest.seed) nvidiaBody.seed = rest.seed;
 
   let upstream;
   try {
@@ -76,8 +99,6 @@ export default async function handler(req, res) {
       .status(upstream.status)
       .json({ error: { message: text || "Upstream error", type: "upstream_error" } });
   }
-
-  const usedModel = model || "minimaxai/minimax-m2.7";
 
   if (!stream) {
     let content = "";
@@ -170,7 +191,7 @@ export default async function handler(req, res) {
           const raw = JSON.parse(p);
           const { nvext, ...clean } = raw;
           clean.object = "chat.completion.chunk";
-          clean.model = usedModel;
+          clean.model = model;
           if (clean.choices?.[0]?.delta && !clean.choices[0].delta.role) {
             clean.choices[0].delta.role = "assistant";
           }
