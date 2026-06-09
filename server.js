@@ -119,15 +119,21 @@ const routes = {
   "/api/verify": verifyHandler,
   "/api/v1/chat/completions": completionsHandler,
   "/api/admin/keys": keysHandler,
-};
-
-// Redirect /v1/* to /api/v1/* for SDK compatibility
-const aliasRoutes = {
-  "/v1/chat/completions": "/api/v1/chat/completions",
+  "/v1/chat/completions": completionsHandler,
 };
 
 async function handleApi(urlPath, req, res) {
-  const handler = routes[urlPath] || routes[aliasRoutes[urlPath]];
+  let handler = routes[urlPath];
+
+  if (!handler && (urlPath === "/api/v1" || urlPath === "/v1")) {
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify({
+      object: "list",
+      data: [{ id: "minimaxai/minimax-m2.7", object: "model" }],
+    }));
+    return true;
+  }
+
   if (!handler) return false;
   const body = await getBody(req);
   const { fakeReq, fakeRes: makeFake } = makeAdapter(req, body);
@@ -147,6 +153,14 @@ const server = http.createServer(async (req, res) => {
 
   if (await handleApi(urlPath, req, res)) return;
   if (await serveStatic(req, res)) return;
+
+  if (urlPath.startsWith("/api/") || urlPath.startsWith("/v1/")) {
+    res.writeHead(405, { "content-type": "application/json; charset=utf-8", "allow": "POST" });
+    res.end(JSON.stringify({
+      error: { message: "This endpoint requires a POST request", type: "method_not_allowed" },
+    }));
+    return;
+  }
 
   res.writeHead(404, { "content-type": "text/plain" });
   res.end("Not found");
