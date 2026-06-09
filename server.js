@@ -121,8 +121,13 @@ const routes = {
   "/api/admin/keys": keysHandler,
 };
 
+// Redirect /v1/* to /api/v1/* for SDK compatibility
+const aliasRoutes = {
+  "/v1/chat/completions": "/api/v1/chat/completions",
+};
+
 async function handleApi(urlPath, req, res) {
-  const handler = routes[urlPath];
+  const handler = routes[urlPath] || routes[aliasRoutes[urlPath]];
   if (!handler) return false;
   const body = await getBody(req);
   const { fakeReq, fakeRes: makeFake } = makeAdapter(req, body);
